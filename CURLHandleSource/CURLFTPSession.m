@@ -130,7 +130,6 @@ createIntermediateDirectories:(BOOL)createIntermediates
     NSMutableURLRequest *request = [self newMutableRequestWithPath:directory isDirectory:YES];
     [request setHTTPMethod:@"HEAD"];
     [request curl_setCreateIntermediateDirectories:createIntermediates];
-    
     // Custom commands once we're in the correct directory
     // CURLOPT_PREQUOTE does much the same thing, but sometimes runs the command twice in my testing
     [request curl_setPostTransferCommands:commands];
@@ -172,6 +171,7 @@ createIntermediateDirectories:(BOOL)createIntermediates
     if (!path) path = @".";
     
     NSMutableURLRequest *request = [self newMutableRequestWithPath:path isDirectory:YES];
+    [request curl_setCreateIntermediateDirectories:NO];
     
     _data = [[NSMutableData alloc] init];
     BOOL result = [_handle loadRequest:request error:error];
@@ -302,7 +302,7 @@ createIntermediateDirectories:(BOOL)createIntermediates
 
 - (BOOL)createDirectoryAtPath:(NSString *)path withIntermediateDirectories:(BOOL)createIntermediates error:(NSError **)error;
 {
-    return [self executeCustomCommands:[NSArray arrayWithObject:[@"MKD " stringByAppendingString:[path lastPathComponent]]]
+    return [self executeCustomCommands:@[[NSString stringWithFormat:@"MKD %@", [path lastPathComponent]]]
                            inDirectory:[path stringByDeletingLastPathComponent]
          createIntermediateDirectories:createIntermediates
                                  error:error];
@@ -344,6 +344,25 @@ createIntermediateDirectories:(BOOL)createIntermediates
 {
     return [self executeCustomCommands:[NSArray arrayWithObject:[@"RMD " stringByAppendingString:[path lastPathComponent]]]
                            inDirectory:[path stringByDeletingLastPathComponent]
+         createIntermediateDirectories:NO
+                                 error:error];
+}
+
+- (BOOL)removeDirectoryAtPath:(NSString *)path error:(NSError **)error;
+{
+    return [self executeCustomCommands:[NSArray arrayWithObject:[@"RMD " stringByAppendingString:[path lastPathComponent]]]
+                           inDirectory:[path stringByDeletingLastPathComponent]
+         createIntermediateDirectories:NO
+                                 error:error];
+}
+
+
+- (BOOL)renameItem:(NSString *)fromPath toPath:(NSString *)toPath error:(NSError **)error
+{
+    NSString *from = [NSString stringWithFormat:@"RNFR %@", [fromPath lastPathComponent]];
+    NSString *to = [NSString stringWithFormat:@"RNTO %@", [toPath lastPathComponent]];
+    return [self executeCustomCommands:@[from, to]
+                           inDirectory:[fromPath stringByDeletingLastPathComponent]
          createIntermediateDirectories:NO
                                  error:error];
 }
