@@ -169,10 +169,11 @@ createIntermediateDirectories:(BOOL)createIntermediates
                                 usingBlock:(void (^)(NSDictionary *parsedResourceListing))block;
 {
     if (!path) path = @".";
-    
+
     NSMutableURLRequest *request = [self newMutableRequestWithPath:path isDirectory:YES];
+    [request setHTTPMethod:@"LIST -a"];
     [request curl_setCreateIntermediateDirectories:NO];
-    
+
     _data = [[NSMutableData alloc] init];
     BOOL result = [_handle loadRequest:request error:error];
     
@@ -316,10 +317,9 @@ createIntermediateDirectories:(BOOL)createIntermediates
     NSNumber *permissions = [attributes objectForKey:NSFilePosixPermissions];
     if (permissions)
     {
-        NSArray *commands = [NSArray arrayWithObject:[NSString stringWithFormat:
-                                                      @"SITE CHMOD %lo %@",
-                                                      [permissions unsignedLongValue],
-                                                      [path lastPathComponent]]];
+        NSArray *commands = @[[NSString stringWithFormat:@"SITE CHMOD %lo %@",
+                               [permissions unsignedLongValue],
+                               [path lastPathComponent]]];
         
         BOOL result = [self executeCustomCommands:commands
                                       inDirectory:[path stringByDeletingLastPathComponent]
@@ -334,7 +334,7 @@ createIntermediateDirectories:(BOOL)createIntermediates
 
 - (BOOL)removeFileAtPath:(NSString *)path error:(NSError **)error;
 {
-    return [self executeCustomCommands:[NSArray arrayWithObject:[@"DELE " stringByAppendingString:[path lastPathComponent]]]
+    return [self executeCustomCommands:@[[NSString stringWithFormat:@"DELE %@", [path lastPathComponent]]]
                            inDirectory:[path stringByDeletingLastPathComponent]
          createIntermediateDirectories:NO
                                  error:error];
@@ -342,7 +342,7 @@ createIntermediateDirectories:(BOOL)createIntermediates
 
 - (BOOL)removeDirectoryAtPath:(NSString *)path error:(NSError **)error;
 {
-    return [self executeCustomCommands:[NSArray arrayWithObject:[@"RMD " stringByAppendingString:[path lastPathComponent]]]
+    return [self executeCustomCommands:@[[NSString stringWithFormat:@"RMD %@", [path lastPathComponent]]]
                            inDirectory:[path stringByDeletingLastPathComponent]
          createIntermediateDirectories:NO
                                  error:error];
