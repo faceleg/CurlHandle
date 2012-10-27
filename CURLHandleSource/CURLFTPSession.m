@@ -348,15 +348,6 @@ createIntermediateDirectories:(BOOL)createIntermediates
                                  error:error];
 }
 
-- (BOOL)removeDirectoryAtPath:(NSString *)path error:(NSError **)error;
-{
-    return [self executeCustomCommands:[NSArray arrayWithObject:[@"RMD " stringByAppendingString:[path lastPathComponent]]]
-                           inDirectory:[path stringByDeletingLastPathComponent]
-         createIntermediateDirectories:NO
-                                 error:error];
-}
-
-
 - (BOOL)renameItem:(NSString *)fromPath toPath:(NSString *)toPath error:(NSError **)error
 {
     NSString *from = [NSString stringWithFormat:@"RNFR %@", [fromPath lastPathComponent]];
